@@ -101,10 +101,7 @@ const App = () => {
 						<p className='text-white text-lg pb-4'>Create a new post</p>
 
 						<form className='w-100' onSubmit={(e) => createPost(e)}>
-							<div className='mb-4 text-left'>
-								<label htmlFor='title' className='block text-white mb-1'>
-									Title
-								</label>
+							<div className='mb-4 space-y-4 text-center'>
 								<input
 									id='title'
 									name='title'
@@ -113,12 +110,9 @@ const App = () => {
 									onChange={(e) => setTitle(e.target.value)}
 									required
 									placeholder='Enter post title'
-									className='w-full p-2 rounded border border-gray-600 bg-gray-700 text-white'
+									className='w-full p-2 rounded border border-gray-600 bg-gray-700 text-white text-center'
 								/>
 
-								<label htmlFor='content' className='block text-white mb-1'>
-									Content
-								</label>
 								<input
 									id='content'
 									name='content'
@@ -127,7 +121,7 @@ const App = () => {
 									onChange={(e) => setContent(e.target.value)}
 									required
 									placeholder='Enter post content'
-									className='w-full p-2 rounded border border-gray-600 bg-gray-700 text-white'
+									className='w-full p-2 rounded border border-gray-600 bg-gray-700 text-white text-center'
 								/>
 							</div>
 
@@ -145,6 +139,10 @@ const App = () => {
 					<h2 className='text-3xl font-bold text-white pt-10'>Posts</h2>
 					<hr className='border-gray-600 my-4' />
 					<div className='mt-4 space-y-4'>
+						{posts.length === 0 && (
+							<p className='text-gray-400'>No posts available. 🥲</p>
+						)}
+
 						{posts.map((post) => (
 							<div
 								key={post.id}
