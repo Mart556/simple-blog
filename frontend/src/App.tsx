@@ -50,6 +50,7 @@ const App = () => {
 				const newPost: Post = await response.json();
 				setPosts((prevPosts) => [...prevPosts, newPost]);
 				setTitle("");
+				setContent("");
 			} else {
 				console.error("Failed to create post");
 			}
@@ -79,6 +80,14 @@ const App = () => {
 						: post
 				)
 			);
+		});
+	};
+
+	const deletePost = (postId: number) => {
+		fetch(`http://localhost:3000/delete-post/${postId}`, {
+			method: "DELETE",
+		}).then(() => {
+			setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
 		});
 	};
 
@@ -141,11 +150,21 @@ const App = () => {
 								key={post.id}
 								className='bg-gray-800 p-6 rounded-lg shadow-lg text-left'
 							>
-								<h3 className='text-xl font-bold text-white'>{post.title}</h3>
+								<div className='flex items-center justify-between'>
+									<h3 className='text-xl font-bold text-white'>{post.title}</h3>
+									<span
+										role='button'
+										aria-label={`Delete post ${post.title}`}
+										className='cursor-pointer text-4xl text-gray-500 hover:text-red-500 pb-4 self-center leading-none'
+										onClick={() => deletePost(post.id)}
+									>
+										&times;
+									</span>
+								</div>
 								<p className='text-gray-300 mt-2'>{post.content}</p>
-
 								<div className='mt-4'>
 									<h4 className='text-lg font-semibold text-white'>Comments</h4>
+									<div className='border border-gray-600 mb-2'></div>
 									<ul className='mt-2 space-y-2'>
 										{post.comments.map((comment) => (
 											<li key={comment.id} className='bg-gray-700 p-2 rounded'>

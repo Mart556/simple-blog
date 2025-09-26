@@ -58,6 +58,18 @@ app.post("/add-comment", (req, res) => {
 	res.status(201).json(newComment);
 });
 
+app.delete("/delete-post/:id", (req, res) => {
+	const postId = parseInt(req.params.id, 10);
+	const postIndex = POSTS.findIndex((p) => p.id === postId);
+
+	if (postIndex === -1) {
+		return res.status(404).json({ error: "Post not found." });
+	}
+
+	POSTS.splice(postIndex, 1);
+	res.status(204).send();
+});
+
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
 });
