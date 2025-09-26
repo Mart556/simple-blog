@@ -1,35 +1,177 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from "react";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+type Comment = {
+	id: number;
+	text: string;
+};
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+type Post = {
+	id: number;
+	title: string;
+	content?: string;
+	comments: Comment[];
+};
 
-export default App
+const App = () => {
+	const [title, setTitle] = useState<string>("");
+	const [content, setContent] = useState<string>("");
+
+	const [posts, setPosts] = useState<Post[]>([]);
+
+	const fetchPosts = async () => {
+		try {
+			const response = await fetch("http://localhost:3000/get-posts");
+			const data: Post[] = await response.json();
+			console.log("Fetched posts:", data);
+			setPosts(data);
+		} catch (error) {
+			console.error("Error fetching posts:", error);
+		}
+	};
+
+	useEffect(() => {
+		fetchPosts();
+	}, []);
+
+	const createPost = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		try {
+			const response = await fetch("http://localhost:3000/add-post", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ title, content }),
+			});
+
+			if (response.ok) {
+				const newPost: Post = await response.json();
+				setPosts((prevPosts) => [...prevPosts, newPost]);
+				setTitle("");
+			} else {
+				console.error("Failed to create post");
+			}
+		} catch (error) {
+			console.error("Error creating post:", error);
+		}
+	};
+
+	const addComment = (postId: number, commentText: string) => {
+		fetch(`http://localhost:3000/add-comment`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ postId, text: commentText }),
+		}).then(() => {
+			setPosts((prevPosts: Post[]) =>
+				prevPosts.map((post) =>
+					post.id === postId
+						? {
+								...post,
+								comments: [
+									...post.comments,
+									{ id: post.comments.length + 1, text: commentText },
+								],
+						  }
+						: post
+				)
+			);
+		});
+	};
+
+	return (
+		<>
+			<div className='flex-col text-center justify-center items-center h-screen w-screen overflow-x-hidden'>
+				<h1 className='text-4xl font-bold text-white pt-5'>Blogi</h1>
+
+				<div className='flex flex-col items-center justify-center pt-10'>
+					<div className='bg-gray-800 p-6 rounded-lg shadow-lg'>
+						<p className='text-white text-lg pb-4'>Create a new post</p>
+
+						<form className='w-100' onSubmit={(e) => createPost(e)}>
+							<div className='mb-4 text-left'>
+								<label htmlFor='title' className='block text-white mb-1'>
+									Title
+								</label>
+								<input
+									id='title'
+									name='title'
+									type='text'
+									value={title}
+									onChange={(e) => setTitle(e.target.value)}
+									required
+									placeholder='Enter post title'
+									className='w-full p-2 rounded border border-gray-600 bg-gray-700 text-white'
+								/>
+
+								<label htmlFor='content' className='block text-white mb-1'>
+									Content
+								</label>
+								<input
+									id='content'
+									name='content'
+									type='text'
+									value={content}
+									onChange={(e) => setContent(e.target.value)}
+									required
+									placeholder='Enter post content'
+									className='w-full p-2 rounded border border-gray-600 bg-gray-700 text-white'
+								/>
+							</div>
+
+							<button
+								type='submit'
+								className='w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded '
+							>
+								Create Post
+							</button>
+						</form>
+					</div>
+				</div>
+
+				<div className='px-10 w-full max-w-4xl mx-auto'>
+					<h2 className='text-3xl font-bold text-white pt-10'>Posts</h2>
+					<hr className='border-gray-600 my-4' />
+					<div className='mt-4 space-y-4'>
+						{posts.map((post) => (
+							<div
+								key={post.id}
+								className='bg-gray-800 p-6 rounded-lg shadow-lg text-left'
+							>
+								<h3 className='text-xl font-bold text-white'>{post.title}</h3>
+								<p className='text-gray-300 mt-2'>{post.content}</p>
+
+								<div className='mt-4'>
+									<h4 className='text-lg font-semibold text-white'>Comments</h4>
+									<ul className='mt-2 space-y-2'>
+										{post.comments.map((comment) => (
+											<li key={comment.id} className='bg-gray-700 p-2 rounded'>
+												{comment.text}
+											</li>
+										))}
+									</ul>
+									<button
+										className='mt-4 bg-gray-600 hover:bg-gray-700 text-white py-1 px-3 rounded'
+										onClick={() => {
+											const commentText = prompt("Enter your comment:");
+											if (commentText) {
+												addComment(post.id, commentText);
+											}
+										}}
+									>
+										Add Comment
+									</button>
+								</div>
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
+		</>
+	);
+};
+
+export default App;
