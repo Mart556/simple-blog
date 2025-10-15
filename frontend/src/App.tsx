@@ -91,7 +91,7 @@ const App = () => {
 		fetch(`http://localhost:3000/delete-post/${postId}`, {
 			method: "DELETE",
 		}).then(() => {
-			fetch(`http://localhost:3001/delete-comment/${postId}`, {
+			fetch(`http://localhost:3001/delete-comments/${postId}`, {
 				method: "DELETE",
 			})
 				.then(() => {
@@ -106,13 +106,33 @@ const App = () => {
 		});
 	};
 
+	const deleteComment = (commentId: number) => {
+		fetch(`http://localhost:3001/delete-comment/${commentId}`, {
+			method: "DELETE",
+		})
+			.then(() => {
+				console.log(`Deleted comment ${commentId}`);
+				setPosts((prevPosts) =>
+					prevPosts.map((post) => ({
+						...post,
+						comments: post.comments.filter(
+							(comment) => comment.id !== commentId
+						),
+					}))
+				);
+			})
+			.catch((error) => {
+				console.error("Error deleting comment:", error);
+			});
+	};
+
 	return (
 		<>
 			<div className='flex-col text-center justify-center items-center h-screen w-screen overflow-x-hidden'>
 				<h1 className='text-4xl font-bold text-white pt-5'>Blogi</h1>
 
 				<div className='flex flex-col items-center justify-center pt-10'>
-					<div className='bg-gray-800 p-6 rounded-lg shadow-lg'>
+					<div className=' p-6 rounded-lg shadow-lg border border-gray-600 bg-radial from-gray-700 via-gray-800 to-black w-full max-w-md mx-auto'>
 						<p className='text-white text-lg pb-4'>Create a new post</p>
 
 						<form className='w-100' onSubmit={(e) => createPost(e)}>
@@ -125,7 +145,7 @@ const App = () => {
 									onChange={(e) => setTitle(e.target.value)}
 									required
 									placeholder='Enter post title'
-									className='w-full p-2 rounded border border-gray-600 bg-gray-700 text-white text-center'
+									className='w-full p-2 rounded border  bg-gray-800 text-white text-center border-b-2 border-gray-600'
 								/>
 
 								<input
@@ -136,13 +156,13 @@ const App = () => {
 									onChange={(e) => setContent(e.target.value)}
 									required
 									placeholder='Enter post content'
-									className='w-full p-2 rounded border border-gray-600 bg-gray-700 text-white text-center'
+									className='w-full p-2 rounded border  bg-gray-800 text-white text-center border-b-2 border-gray-600'
 								/>
 							</div>
 
 							<button
 								type='submit'
-								className='w-full bg-gray-600 hover:bg-gray-700 text-white py-2 rounded '
+								className='w-full bg-green-600 hover:bg-green-900 text-white py-2 rounded cursor-pointer transition-colors duration-300'
 							>
 								Create Post
 							</button>
@@ -153,7 +173,7 @@ const App = () => {
 				<div className='px-10 w-full max-w-4xl mx-auto'>
 					<h2 className='text-3xl font-bold text-white pt-10'>Posts</h2>
 					<hr className='border-gray-600 my-4' />
-					<div className='mt-4 space-y-4'>
+					<div className='mt-4 space-y-4 h-max-screen overflow-y-auto '>
 						{posts.length === 0 && (
 							<p className='text-gray-400'>No posts available. 🥲</p>
 						)}
@@ -161,10 +181,12 @@ const App = () => {
 						{posts.map((post) => (
 							<div
 								key={post.id}
-								className='bg-gray-800 p-6 rounded-lg shadow-lg text-left'
+								className='p-4  rounded-lg shadow-lg text-left border-2 border-gray-700 bg-gray-900'
 							>
-								<div className='flex items-center justify-between'>
-									<h3 className='text-xl font-bold text-white'>{post.title}</h3>
+								<div className='flex  items-center justify-between'>
+									<h3 className='text-3xl font-bold text-white'>
+										{post.title}
+									</h3>
 									<span
 										role='button'
 										aria-label={`Delete post ${post.title}`}
@@ -174,7 +196,7 @@ const App = () => {
 										&times;
 									</span>
 								</div>
-								<p className='text-gray-300 mt-2'>{post.content}</p>
+								<p className='text-gray-300 mt-2 '>{post.content}</p>
 								<div className='mt-4'>
 									<h4 className='text-lg font-semibold text-white'>Comments</h4>
 									<div className='border border-gray-600 mb-2'></div>
@@ -187,13 +209,28 @@ const App = () => {
 													key={comment.id}
 													className='bg-gray-700 p-2 rounded'
 												>
-													{comment.text}
+													<div className='flex justify-between items-center'>
+														<span className='text-gray-200'>
+															{comment.text}
+														</span>
+														<span className='text-gray-500 text-sm'>
+															Comment ID: {comment.id}
+														</span>
+														<span
+															role='button'
+															aria-label={`Delete comment ${comment.id}`}
+															className='cursor-pointer text-red-500 hover:text-red-700 text-2xl'
+															onClick={() => deleteComment(comment.id)}
+														>
+															&times;
+														</span>
+													</div>
 												</li>
 											))
 										)}
 									</ul>
 									<button
-										className='mt-4 bg-gray-600 hover:bg-gray-700 text-white py-1 px-3 rounded'
+										className='mt-4 bg-green-600 hover:bg-green-900 text-white py-1 px-3 rounded cursor-pointer transition-colors duration-300'
 										onClick={() => {
 											const commentText = prompt("Enter your comment:");
 											if (commentText) {

@@ -49,6 +49,19 @@ app.delete("/delete-comment/:id", (req, res) => {
 	res.status(200).json({ message: "Comment deleted successfully." });
 });
 
+app.delete("/delete-comments/:id", (req, res) => {
+	const postId = parseInt(req.params.id, 10);
+	for (let i = COMMENTS.length - 1; i >= 0; i--) {
+		if (COMMENTS[i].postId === postId) {
+			COMMENTS.splice(i, 1);
+		}
+	}
+
+	res
+		.status(200)
+		.json({ message: "Comment for the post deleted successfully." });
+});
+
 const PORT = 3001;
 app.listen(PORT, () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
