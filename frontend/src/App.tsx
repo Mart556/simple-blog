@@ -21,7 +21,7 @@ const App = () => {
 
 	const fetchPosts = async () => {
 		try {
-			const response = await fetch("http://localhost:3000/get-posts");
+			const response = await fetch("http://localhost:3000/posts/get-posts");
 			const data: Post[] = await response.json();
 			console.log("Fetched posts:", data);
 			setPosts(data);
@@ -38,7 +38,7 @@ const App = () => {
 		e.preventDefault();
 
 		try {
-			const response = await fetch("http://localhost:3000/add-post", {
+			const response = await fetch("http://localhost:3000/posts/add-post", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -84,7 +84,7 @@ const App = () => {
 	};
 
 	const deletePost = (postId: number) => {
-		fetch(`http://localhost:3000/delete-post/${postId}`, {
+		fetch(`http://localhost:3000/posts/delete-post/${postId}`, {
 			method: "DELETE",
 		}).then(() => {
 			setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
