@@ -22,24 +22,25 @@ const App = () => {
 
 	const fetchPosts = async () => {
 		try {
-			const response = await fetch("http://localhost:3000/get-posts");
-			const data: Post[] = await response.json();
+			Promise.all([
+				fetch("http://localhost:3000/get-posts"),
+				fetch("http://localhost:3001/get-comments"),
+			]).then(async ([postsResponse, commentsResponse]) => {
+				const data: Post[] = await postsResponse.json();
+				const commentsData: Comment[] = await commentsResponse.json();
 
-			const commentsResponse = await fetch(
-				"http://localhost:3001/get-comments"
-			);
+				const postsWithComments = data.map((post) => ({
+					...post,
+					comments: commentsData.filter(
+						(comment) => comment.postId === post.id
+					),
+				}));
 
-			const commentsData: Comment[] = await commentsResponse.json();
+				console.log("Fetched posts:", data);
+				console.log("Fetched comments:", commentsData);
 
-			const postsWithComments = data.map((post) => ({
-				...post,
-				comments: commentsData.filter((comment) => comment.postId === post.id),
-			}));
-
-			console.log("Fetched posts:", data);
-			console.log("Fetched comments:", commentsData);
-
-			setPosts(postsWithComments);
+				setPosts(postsWithComments);
+			});
 		} catch (error) {
 			console.error("Error fetching posts:", error);
 		}
@@ -60,7 +61,7 @@ const App = () => {
 				},
 				body: JSON.stringify({ title, content }),
 			});
-			console.log(response.ok);
+
 			if (response.ok) {
 				const newPost: Post = await response.json();
 				setPosts((prevPosts) => [...prevPosts, newPost]);
@@ -81,10 +82,29 @@ const App = () => {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ postId, text: commentText }),
-		}).then(() => {
-			console.log(`Added comment to post ${postId}`);
-			fetchPosts();
-		});
+		})
+			.then((response) => response.json())
+			.then((commentId) => {
+				console.log("Added comment:", {
+					id: commentId,
+					postId,
+					text: commentText,
+				});
+
+				setPosts((prevPosts) =>
+					prevPosts.map((post) =>
+						post.id === postId
+							? {
+									...post,
+									comments: [
+										...post.comments,
+										{ id: commentId, postId, text: commentText },
+									],
+							  }
+							: post
+					)
+				);
+			});
 	};
 
 	const deletePost = (postId: number) => {
