@@ -1,7 +1,8 @@
-backend/node_modules
+posts/node_modules
+comments/node_modules
+
 frontend/node_modules
 
-backend/.env
 frontend/.env
 
 frontend/build
